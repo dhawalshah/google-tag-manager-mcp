@@ -24,12 +24,12 @@ def test_version_publish_with_confirm(monkeypatch):
     assert out["success"] is True and seen["m"] == "POST" and seen["p"] == f"{VER}:publish"
 
 
-def test_version_live_slash_get(monkeypatch):
+def test_version_live(monkeypatch):
     seen = {}
     monkeypatch.setattr(client, "request",
                         lambda m, p, params=None, body=None: seen.update(m=m, p=p) or {})
     out = gtm_version(action="live", path=CON)
-    assert out["success"] is True and seen["m"] == "GET" and seen["p"] == f"{CON}/live"
+    assert out["success"] is True and seen["m"] == "GET" and seen["p"] == f"{CON}/versions:live"
 
 
 def test_version_set_latest_needs_confirm(monkeypatch):

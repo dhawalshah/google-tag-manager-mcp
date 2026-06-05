@@ -7,8 +7,7 @@ SPEC = ResourceSpec(
     collection="versions",
     actions={"get", "live", "publish", "set_latest", "undelete", "update", "remove"},
     destructive={"publish", "set_latest", "undelete", "remove"},
-    special={"publish": "POST", "set_latest": "POST", "undelete": "POST"},
-    custom={"live"},
+    special={"live": "GET", "publish": "POST", "set_latest": "POST", "undelete": "POST"},
 )
 
 
@@ -19,7 +18,7 @@ def gtm_version(action: str, parent: str | None = None, path: str | None = None,
 
     Actions:
       - get:        path='<container>/versions/{id}'.
-      - live:       path='<container>' -> currently-published version. (read-only)
+      - live:       path='<container>' (or parent='<container>') -> currently-published version. (read-only)
       - publish:    path='<container>/versions/{id}', confirm=true. PUSHES LIVE. (destructive)
       - set_latest: path='<container>/versions/{id}', confirm=true. (destructive)
       - undelete:   path='<container>/versions/{id}', confirm=true. (destructive)
@@ -27,11 +26,9 @@ def gtm_version(action: str, parent: str | None = None, path: str | None = None,
       - remove:     path='<container>/versions/{id}', confirm=true. (destructive)
     """
     if action == "live":
-        if not path:
-            return client.format_error("'live' requires a path (the container).", "MISSING_PATH")
-        try:
-            return client.format_response(client.request("GET", f"{path}/live"), resource="version")
-        except client.requests.RequestException as e:
-            return client.format_error(str(e), error_code="API_ERROR")
+        container = path or parent
+        if not container:
+            return client.format_error("'live' requires the container path.", "MISSING_PATH")
+        return dispatch(SPEC, action="live", path=f"{container}/versions", params=params)
     return dispatch(SPEC, action=action, parent=parent, path=path,
                     config=config, confirm=confirm, params=params)
