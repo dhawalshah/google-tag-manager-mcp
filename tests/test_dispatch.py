@@ -127,3 +127,10 @@ def test_create_forwards_params(monkeypatch):
     client.dispatch(SPEC, action="create", parent="accounts/1/containers/2/workspaces/3",
                     config={"x": 1}, params={"type": "pageUrl"})
     assert seen["params"] == {"type": "pageUrl"}
+
+
+def test_custom_action_allowed_in_spec():
+    spec = ResourceSpec(name="ws", collection="workspaces",
+                        actions={"get", "get_status"}, custom={"get_status"})
+    # constructing it must not raise; get_status is routable via custom
+    assert "get_status" in spec.actions

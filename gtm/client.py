@@ -98,18 +98,20 @@ class ResourceSpec:
     destructive: set = field(default_factory=set)
     # special verb actions → HTTP method, e.g. {"publish": "POST", "sync": "POST"}
     special: dict = field(default_factory=dict)
+    # custom slash-suffix actions handled inline by the resource module (e.g. get_status → /status)
+    custom: set = field(default_factory=set)
 
     def __post_init__(self):
-        routable = set(_STD) | set(self.special)
+        routable = set(_STD) | set(self.special) | self.custom
         unroutable = self.actions - routable
         if unroutable:
             raise ValueError(
                 f"{self.name}: actions not routable via _STD or special: {sorted(unroutable)}"
             )
-        orphaned = self.destructive - (self.actions | set(self.special))
+        orphaned = self.destructive - self.actions
         if orphaned:
             raise ValueError(
-                f"{self.name}: destructive actions not in actions/special: {sorted(orphaned)}"
+                f"{self.name}: destructive actions not in actions: {sorted(orphaned)}"
             )
 
 
