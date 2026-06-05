@@ -118,3 +118,12 @@ def test_bad_spec_raises_at_construction():
     import pytest as _pytest
     with _pytest.raises(ValueError):
         ResourceSpec(name="bad", collection="bad", actions={"frobnicate"})
+
+
+def test_create_forwards_params(monkeypatch):
+    seen = {}
+    monkeypatch.setattr(client, "request",
+                        lambda m, p, params=None, body=None: seen.update(params=params) or {})
+    client.dispatch(SPEC, action="create", parent="accounts/1/containers/2/workspaces/3",
+                    config={"x": 1}, params={"type": "pageUrl"})
+    assert seen["params"] == {"type": "pageUrl"}

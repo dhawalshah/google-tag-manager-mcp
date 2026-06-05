@@ -155,7 +155,7 @@ def dispatch(spec: ResourceSpec, *, action: str, parent: str | None = None,
             elif action == "create":
                 if not parent:
                     return format_error("'create' requires a parent path.", "MISSING_PARENT")
-                data = request(method, f"{parent}/{spec.collection}", body=config)
+                data = request(method, f"{parent}/{spec.collection}", params=params, body=config)
             elif action == "revert":
                 if not path:
                     return format_error("'revert' requires a path.", "MISSING_PATH")
