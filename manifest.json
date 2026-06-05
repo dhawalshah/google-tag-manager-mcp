@@ -1,0 +1,54 @@
+{
+  "dxt_version": "0.1",
+  "name": "gtm-mcp",
+  "display_name": "Google Tag Manager MCP",
+  "version": "1.0.0",
+  "description": "A Python MCP server for the Google Tag Manager API v2 with OAuth 2.0 authentication",
+  "long_description": "Connect Claude (or any MCP client) to Google Tag Manager. 18 consolidated per-resource tools cover accounts, containers, workspaces, tags, triggers, variables, versions, environments, and more. Destructive actions (publish/remove/revert) require explicit confirmation. Runs locally via STDIO or as a shared team server on Google Cloud Run.",
+  "author": {"name": "Dhawal Shah", "url": "https://github.com/dhawalshah"},
+  "server": {
+    "type": "python",
+    "entry_point": "server.py",
+    "mcp_config": {
+      "command": "python",
+      "args": ["${__dirname}/server.py"],
+      "env": {
+        "OAUTH_CONFIG_PATH": "${user_config.oauth_config_path}",
+        "MCP_USER_EMAIL": "${user_config.mcp_user_email}",
+        "PYTHONPATH": "${__dirname}/lib"
+      },
+      "cwd": "${__dirname}"
+    }
+  },
+  "tools": [
+    {"name": "gtm_account", "description": "Accounts: get, list, update"},
+    {"name": "gtm_container", "description": "Containers: CRUD + combine, lookup, move_tag_id, snippet"},
+    {"name": "gtm_workspace", "description": "Workspaces: CRUD + create_version, get_status, sync, quick_preview, resolve_conflict"},
+    {"name": "gtm_tag", "description": "Tags: create, get, list, update, remove, revert"},
+    {"name": "gtm_trigger", "description": "Triggers: create, get, list, update, remove, revert"},
+    {"name": "gtm_variable", "description": "Variables: create, get, list, update, remove, revert"},
+    {"name": "gtm_built_in_variable", "description": "Built-in variables: create, list, remove, revert"},
+    {"name": "gtm_folder", "description": "Folders: CRUD + revert, entities, move_entities_to_folder"},
+    {"name": "gtm_client", "description": "Clients: create, get, list, update, remove, revert"},
+    {"name": "gtm_zone", "description": "Zones: create, get, list, update, remove, revert"},
+    {"name": "gtm_template", "description": "Templates: CRUD + revert, import_from_gallery"},
+    {"name": "gtm_transformation", "description": "Transformations: create, get, list, update, remove, revert"},
+    {"name": "gtm_gtag_config", "description": "Google tag config: create, get, list, update, remove"},
+    {"name": "gtm_destination", "description": "Destinations: get, list, link"},
+    {"name": "gtm_environment", "description": "Environments: CRUD + reauthorize"},
+    {"name": "gtm_version", "description": "Container versions: get, live, publish, set_latest, undelete, update, remove"},
+    {"name": "gtm_version_header", "description": "Version headers: list, latest"},
+    {"name": "gtm_user_permission", "description": "User permissions: create, get, list, update, remove"}
+  ],
+  "keywords": ["google", "tag-manager", "gtm", "tags", "analytics", "oauth"],
+  "license": "MIT",
+  "user_config": {
+    "oauth_config_path": {"type": "string", "title": "OAuth Configuration Path", "description": "Full path to your Google Cloud OAuth 2.0 client credentials JSON file", "required": true},
+    "mcp_user_email": {"type": "string", "title": "Your Google Account Email", "description": "Your Google account email — used to identify your stored credentials", "required": true}
+  },
+  "compatibility": {
+    "claude_desktop": ">=0.10.0",
+    "platforms": ["darwin", "win32", "linux"],
+    "runtimes": {"python": ">=3.10.0 <4"}
+  }
+}

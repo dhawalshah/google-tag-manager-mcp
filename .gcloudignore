@@ -1,0 +1,24 @@
+# Cloud Run build ignore
+.gcloudignore
+.git
+.gitignore
+.worktrees/
+.env
+*_token.json
+token.json
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+*.egg-info/
+dist/
+build/
+.DS_Store
+docs/
+tests/
+reference/
+*.example
+
+# Secret is mounted from Secret Manager at runtime — never bake into image
+client_secret*.json

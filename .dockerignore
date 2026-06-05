@@ -1,0 +1,14 @@
+.env
+*_token.json
+token.json
+__pycache__
+*.pyc
+*.pyo
+.venv
+venv
+.git
+.worktrees
+tests/
+reference/
+docs/
+*.example
