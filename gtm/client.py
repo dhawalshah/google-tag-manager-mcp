@@ -3,7 +3,7 @@ import json
 import logging
 import threading
 import time
-from collections import defaultdict, deque
+from collections import deque
 from datetime import datetime, timezone
 
 import requests
@@ -87,3 +87,75 @@ def request(method: str, path: str, params: dict | None = None, body: dict | Non
         resp.raise_for_status()
         return resp.json() if resp.content else {}
     raise RuntimeError("GTM API rate limit: exhausted retries")
+
+
+from dataclasses import dataclass, field
+
+
+@dataclass
+class ResourceSpec:
+    name: str
+    collection: str
+    actions: set
+    destructive: set = field(default_factory=set)
+    # special verb actions → HTTP method, e.g. {"publish": "POST", "sync": "POST"}
+    special: dict = field(default_factory=dict)
+
+
+# Standard CRUD action → (HTTP method, uses full path vs parent)
+_STD = {
+    "list":   ("GET", "parent"),
+    "get":    ("GET", "path"),
+    "create": ("POST", "parent"),
+    "update": ("PUT", "path"),
+    "remove": ("DELETE", "path"),
+    "revert": ("POST", "path:revert"),
+}
+
+
+def dispatch(spec: ResourceSpec, *, action: str, parent: str | None = None,
+             path: str | None = None, config: dict | None = None,
+             confirm: bool = False, params: dict | None = None,
+             extra: dict | None = None) -> dict:
+    """Validate + route a consolidated tool call to the GTM API."""
+    if action not in spec.actions:
+        return format_error(
+            f"Unknown action '{action}' for {spec.name}. "
+            f"Valid actions: {', '.join(sorted(spec.actions))}.",
+            error_code="UNKNOWN_ACTION",
+        )
+    if action in spec.destructive and not confirm:
+        return format_error(
+            f"Action '{action}' on {spec.name} is destructive and may affect "
+            f"live production. Re-call with confirm=true to proceed.",
+            error_code="CONFIRMATION_REQUIRED",
+        )
+    try:
+        if action in spec.special:
+            method = spec.special[action]
+            if not path:
+                return format_error(f"'{action}' requires a path.", "MISSING_PATH")
+            data = request(method, f"{path}:{action}", params=params, body=config)
+        elif action in _STD:
+            method, target = _STD[action]
+            if action == "list":
+                if not parent:
+                    return format_error("'list' requires a parent path.", "MISSING_PARENT")
+                data = request(method, f"{parent}/{spec.collection}", params=params)
+            elif action == "create":
+                if not parent:
+                    return format_error("'create' requires a parent path.", "MISSING_PARENT")
+                data = request(method, f"{parent}/{spec.collection}", body=config)
+            elif action == "revert":
+                if not path:
+                    return format_error("'revert' requires a path.", "MISSING_PATH")
+                data = request("POST", f"{path}:revert", params=params)
+            else:  # get / update / remove
+                if not path:
+                    return format_error(f"'{action}' requires a path.", "MISSING_PATH")
+                data = request(method, path, params=params, body=config)
+        else:
+            return format_error(f"Action '{action}' not routable for {spec.name}.", "UNROUTABLE")
+        return format_response(data, resource=spec.name)
+    except Exception as e:  # noqa: BLE001 — surface API errors as structured output
+        return format_error(str(e), error_code="API_ERROR")
