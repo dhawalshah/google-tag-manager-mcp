@@ -4,6 +4,7 @@ import logging
 import threading
 import time
 from collections import deque
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
 
 import requests
@@ -89,9 +90,6 @@ def request(method: str, path: str, params: dict | None = None, body: dict | Non
     raise RuntimeError("GTM API rate limit: exhausted retries")
 
 
-from dataclasses import dataclass, field
-
-
 @dataclass
 class ResourceSpec:
     name: str
@@ -101,22 +99,34 @@ class ResourceSpec:
     # special verb actions → HTTP method, e.g. {"publish": "POST", "sync": "POST"}
     special: dict = field(default_factory=dict)
 
+    def __post_init__(self):
+        routable = set(_STD) | set(self.special)
+        unroutable = self.actions - routable
+        if unroutable:
+            raise ValueError(
+                f"{self.name}: actions not routable via _STD or special: {sorted(unroutable)}"
+            )
+        orphaned = self.destructive - (self.actions | set(self.special))
+        if orphaned:
+            raise ValueError(
+                f"{self.name}: destructive actions not in actions/special: {sorted(orphaned)}"
+            )
 
-# Standard CRUD action → (HTTP method, uses full path vs parent)
+
+# Standard CRUD action → HTTP method. Routing (parent vs path) is decided in dispatch().
 _STD = {
-    "list":   ("GET", "parent"),
-    "get":    ("GET", "path"),
-    "create": ("POST", "parent"),
-    "update": ("PUT", "path"),
-    "remove": ("DELETE", "path"),
-    "revert": ("POST", "path:revert"),
+    "list":   "GET",
+    "get":    "GET",
+    "create": "POST",
+    "update": "PUT",
+    "remove": "DELETE",
+    "revert": "POST",
 }
 
 
 def dispatch(spec: ResourceSpec, *, action: str, parent: str | None = None,
              path: str | None = None, config: dict | None = None,
-             confirm: bool = False, params: dict | None = None,
-             extra: dict | None = None) -> dict:
+             confirm: bool = False, params: dict | None = None) -> dict:
     """Validate + route a consolidated tool call to the GTM API."""
     if action not in spec.actions:
         return format_error(
@@ -137,7 +147,7 @@ def dispatch(spec: ResourceSpec, *, action: str, parent: str | None = None,
                 return format_error(f"'{action}' requires a path.", "MISSING_PATH")
             data = request(method, f"{path}:{action}", params=params, body=config)
         elif action in _STD:
-            method, target = _STD[action]
+            method = _STD[action]
             if action == "list":
                 if not parent:
                     return format_error("'list' requires a parent path.", "MISSING_PARENT")
@@ -157,5 +167,5 @@ def dispatch(spec: ResourceSpec, *, action: str, parent: str | None = None,
         else:
             return format_error(f"Action '{action}' not routable for {spec.name}.", "UNROUTABLE")
         return format_response(data, resource=spec.name)
-    except Exception as e:  # noqa: BLE001 — surface API errors as structured output
+    except requests.RequestException as e:
         return format_error(str(e), error_code="API_ERROR")

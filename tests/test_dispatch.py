@@ -10,6 +10,14 @@ SPEC = ResourceSpec(
     destructive={"remove", "revert"},
 )
 
+SPECIAL_SPEC = ResourceSpec(
+    name="container",
+    collection="containers",
+    actions={"get", "list", "snippet", "publish"},
+    destructive={"publish"},
+    special={"snippet": "GET", "publish": "POST"},
+)
+
 
 def test_unknown_action_errors():
     out = client.dispatch(SPEC, action="frobnicate")
@@ -48,3 +56,65 @@ def test_list_calls_parent_collection(monkeypatch):
     assert seen["method"] == "GET"
     assert seen["path"] == "accounts/1/containers/2/workspaces/3/tags"
     assert out["success"] is True
+
+
+def test_create_routes_post_to_parent_collection(monkeypatch):
+    seen = {}
+    def fake_request(method, path, params=None, body=None):
+        seen.update(method=method, path=path, body=body); return {}
+    monkeypatch.setattr(client, "request", fake_request)
+    out = client.dispatch(SPEC, action="create",
+                          parent="accounts/1/containers/2/workspaces/3", config={"name": "t"})
+    assert out["success"] is True
+    assert seen["method"] == "POST"
+    assert seen["path"] == "accounts/1/containers/2/workspaces/3/tags"
+    assert seen["body"] == {"name": "t"}
+
+
+def test_get_routes_to_full_path(monkeypatch):
+    seen = {}
+    monkeypatch.setattr(client, "request",
+                        lambda m, p, params=None, body=None: seen.update(m=m, p=p) or {})
+    out = client.dispatch(SPEC, action="get", path="accounts/1/containers/2/workspaces/3/tags/4")
+    assert seen["m"] == "GET" and seen["p"].endswith("/tags/4")
+
+
+def test_revert_routes_to_revert_verb(monkeypatch):
+    seen = {}
+    monkeypatch.setattr(client, "request",
+                        lambda m, p, params=None, body=None: seen.update(m=m, p=p) or {})
+    out = client.dispatch(SPEC, action="revert",
+                          path="accounts/1/containers/2/workspaces/3/tags/4", confirm=True)
+    assert seen["m"] == "POST"
+    assert seen["p"] == "accounts/1/containers/2/workspaces/3/tags/4:revert"
+
+
+def test_special_readonly_verb_no_confirm(monkeypatch):
+    seen = {}
+    monkeypatch.setattr(client, "request",
+                        lambda m, p, params=None, body=None: seen.update(m=m, p=p) or {})
+    out = client.dispatch(SPECIAL_SPEC, action="snippet", path="accounts/1/containers/2")
+    assert out["success"] is True
+    assert seen["m"] == "GET" and seen["p"] == "accounts/1/containers/2:snippet"
+
+
+def test_special_destructive_verb_needs_confirm(monkeypatch):
+    monkeypatch.setattr(client, "request", lambda *a, **k: {})
+    out = client.dispatch(SPECIAL_SPEC, action="publish", path="accounts/1/containers/2/versions/9")
+    assert out["success"] is False and "confirm=true" in out["error"]
+
+
+def test_missing_path_errors():
+    out = client.dispatch(SPEC, action="get")
+    assert out["success"] is False and out["error_code"] == "MISSING_PATH"
+
+
+def test_missing_parent_on_create_errors():
+    out = client.dispatch(SPEC, action="create", config={"name": "t"})
+    assert out["success"] is False and out["error_code"] == "MISSING_PARENT"
+
+
+def test_bad_spec_raises_at_construction():
+    import pytest as _pytest
+    with _pytest.raises(ValueError):
+        ResourceSpec(name="bad", collection="bad", actions={"frobnicate"})
