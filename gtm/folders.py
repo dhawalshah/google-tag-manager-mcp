@@ -7,7 +7,7 @@ SPEC = ResourceSpec(
     actions={"create", "get", "list", "update", "remove", "revert",
              "entities", "move_entities_to_folder"},
     destructive={"remove", "revert", "move_entities_to_folder"},
-    special={"entities": "GET", "move_entities_to_folder": "PUT"},
+    special={"entities": "POST", "move_entities_to_folder": "POST"},
 )
 
 

@@ -29,7 +29,7 @@ def test_folder_entities_action(monkeypatch):
                         lambda m, p, params=None, body=None: seen.update(m=m, p=p) or {})
     out = gtm_folder(action="entities", path=f"{WS}/folders/7")
     assert out["success"] is True
-    assert seen["m"] == "GET" and seen["p"] == f"{WS}/folders/7:entities"
+    assert seen["m"] == "POST" and seen["p"] == f"{WS}/folders/7:entities"
 
 
 def test_folder_move_entities_needs_confirm(monkeypatch):
@@ -45,7 +45,7 @@ def test_folder_move_entities_with_confirm(monkeypatch):
     out = gtm_folder(action="move_entities_to_folder", path=f"{WS}/folders/7",
                      params={"tagId": "1"}, confirm=True)
     assert out["success"] is True
-    assert seen["m"] == "PUT" and seen["p"] == f"{WS}/folders/7:move_entities_to_folder"
+    assert seen["m"] == "POST" and seen["p"] == f"{WS}/folders/7:move_entities_to_folder"
 
 
 def test_template_import_from_gallery_translates_parent(monkeypatch):
