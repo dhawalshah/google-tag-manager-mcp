@@ -1,0 +1,8 @@
+fastmcp
+fastapi
+uvicorn
+requests
+python-dotenv
+google-auth
+google-auth-oauthlib
+google-cloud-firestore
