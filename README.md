@@ -279,6 +279,27 @@ The `reference/` folder holds the upstream [stape-io/gtm-mcp](https://github.com
 
 ---
 
+## About Dhawal Shah
+
+<img src="https://www.dhawalshah.net/images/illustrations/about-dhawal-shah.webp" alt="Caricature of Dhawal Shah" align="right" width="155">
+
+I run a 40-plus person digital marketing agency out of Singapore, and I build the
+automation my own teams use. This server is one of those tools rather than a weekend
+project: it runs against live Tag Manager accounts every week, which is why the
+read-only surface is wide and the write surface is deliberately narrow.
+
+Fourteen years building companies across Asia behind it. 5,000+ campaigns, 400+ brands,
+30+ startups advised, and 300+ training sessions for teams including Sony, Toyota, DHL
+and Interpol. I am also an Accredited Director with the Singapore Institute of Directors,
+which in practice means I get asked what breaks, who is accountable and what it costs
+before anyone asks what it can do.
+
+I write up the routines and agents I actually run at [dhawalshah.net](https://www.dhawalshah.net/about/).
+
+Worth reading alongside this repo: [Claude Code for Marketing: Every Channel from One Terminal](https://www.dhawalshah.net/article/claude-code-for-marketing/).
+
+---
+
 ## License
 
 MIT
