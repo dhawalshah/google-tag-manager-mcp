@@ -294,9 +294,9 @@ and Interpol. I am also an Accredited Director with the Singapore Institute of D
 which in practice means I get asked what breaks, who is accountable and what it costs
 before anyone asks what it can do.
 
-I write up the routines and agents I actually run at [dhawalshah.net](https://www.dhawalshah.net/about/).
+I write up the routines and agents I actually run at [dhawalshah.net](https://www.dhawalshah.net/about/?utm_source=github.com&utm_medium=referral&utm_campaign=google-tag-manager-mcp&utm_content=readme).
 
-Worth reading alongside this repo: [Claude Code for Marketing: Every Channel from One Terminal](https://www.dhawalshah.net/article/claude-code-for-marketing/).
+Worth reading alongside this repo: [Claude Code for Marketing: Every Channel from One Terminal](https://www.dhawalshah.net/article/claude-code-for-marketing/?utm_source=github.com&utm_medium=referral&utm_campaign=google-tag-manager-mcp&utm_content=readme).
 
 ---
 
