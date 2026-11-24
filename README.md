@@ -1,5 +1,7 @@
 # Google Tag Manager MCP
 
+[![dhawalshah/google-tag-manager-mcp MCP server](https://glama.ai/mcp/servers/dhawalshah/google-tag-manager-mcp/badges/score.svg)](https://glama.ai/mcp/servers/dhawalshah/google-tag-manager-mcp)
+
 A Python Model Context Protocol (MCP) server for the Google Tag Manager API v2. Connect Claude (or any MCP-compatible AI client) directly to your GTM accounts to manage tags, triggers, variables, workspaces, versions, environments, and more — all in natural language.
 
 The server is also an OAuth 2.1 authorization server, so it works as a remote connector anywhere Claude supports custom MCP servers — claude.ai (personal), Claude Desktop, and Claude Teams. For Teams, the org owner adds the URL once and each member authenticates individually on first use.
